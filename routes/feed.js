@@ -13,7 +13,7 @@ router.get('/', (req, res) => {
 router.post("/post",
     [
         body('title').trim().isLength({ min: 5 }), // Validate title length
-        body('content').trim().isLength({ min: 5 }), // Validate content length
+        body('content').trim().isLength({ min: 7 }), // Validate content length
         // body('imageUrl').trim().isURL(), // Validate image URL
     ]
     , feedController.createPost);

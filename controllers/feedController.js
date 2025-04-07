@@ -29,10 +29,10 @@ exports.getPosts = (req, res, next) => {
 exports.createPost = (req, res) => {
     const errors = validationResult(req); // Validate the request body
     if (!errors.isEmpty()) {
-        return res.status(422).json({ 
-            message: 'Validation failed, entered data is incorrect.',
-            errors: errors.array() 
-        }); // Return validation errors
+        const error = new Error('Validation failed, entered data is incorrect.'); // Create a new error
+        error.statusCode = 422; // Set status code to 422 (Unprocessable Entity)
+        error.data = errors.array(); // Attach validation errors to the error object
+        throw  error // Throw the error to be handled by the error handling middleware
     }
     // Extract data from request body 
     const title = req.body.title; // Extract title from request body
@@ -55,6 +55,9 @@ exports.createPost = (req, res) => {
             });
         })
         .catch(err => {
-            res.status(500).json({ message: 'Creating a post failed!' }); // Return error response
+            if (!err.statusCode) { // Check if error has a status code
+                err.statusCode = 500; // Set default status code to 500
+            }
+            next(err); // Pass the error to the next middleware
         });
 }
