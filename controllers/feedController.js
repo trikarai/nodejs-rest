@@ -61,3 +61,25 @@ exports.createPost = (req, res) => {
             next(err); // Pass the error to the next middleware
         });
 }
+
+exports.getPostSingle = (req, res) => {
+    const postId = req.params.postId; // Get the post ID from the request parameters
+    Post.findById(postId) // Find the post by ID in the database
+        .then(post => {
+            if (!post) { // Check if post exists
+                const error = new Error('Could not find post.'); // Create a new error
+                error.statusCode = 404; // Set status code to 404 (Not Found)
+                throw error; // Throw the error to be handled by the error handling middleware
+            }
+            res.status(200).json({ // Return success response
+                message: 'Post fetched.',
+                post: post, // Return the found post
+            });
+        })
+        .catch(err => {
+            if (!err.statusCode) { // Check if error has a status code
+                err.statusCode = 500; // Set default status code to 500
+            }
+            next(err); // Pass the error to the next middleware
+        });
+}

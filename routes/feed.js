@@ -18,4 +18,6 @@ router.post("/post",
     ]
     , feedController.createPost);
  
+router.get('/post/:postId', feedController.getPostSingle); // Route to get all posts
+
 module.exports = router;
