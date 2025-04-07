@@ -30,9 +30,12 @@ exports.createPost = (req, res) => {
     res.status(201).json({
         message: 'Post created successfully!',
         post: {
-            id: new Date().toISOString(), // Simulate an ID for the new post
+            _id: new Date().toISOString(), // Simulate an ID for the new post
             title: title,
             content: content,
+            imageUrl: '/images/1743836947636-images.png', 
+            creator: { name: 'Tri' }, 
+            createdAt: new Date(), 
         },
     });
 }
