@@ -1,5 +1,8 @@
 const { validationResult } = require('express-validator');
 
+const Post = require('../models/post'); // Import the Post model
+const User = require('../models/user'); // Import the User model
+
 exports.getPosts = (req, res, next) => {
     res.status(200).json({
       posts: [
@@ -35,17 +38,23 @@ exports.createPost = (req, res) => {
     const title = req.body.title; // Extract title from request body
     const content = req.body.content; // Extract content from request body
 
-    // Here you would typically save the post to a database
-    // For now, we'll just return the created post as a response
-    res.status(201).json({
-        message: 'Post created successfully!',
-        post: {
-            _id: new Date().toISOString(), // Simulate an ID for the new post
-            title: title,
-            content: content,
-            imageUrl: '/images/1743836947636-images.png', 
-            creator: { name: 'Tri' }, 
-            createdAt: new Date(), 
-        },
+    const post = new Post({
+      // Create a new post instance
+      title: title,
+      content: content,
+      imageUrl: "/images/1743836947636-images.png", // Example image URL
+      // creator: req.userId, // Assuming you have user authentication set up
+      creator: "67c2eaf8cb97060c184e0fd0",  
     });
+
+    post.save() // Save the post to the database
+        .then(result => {
+            res.status(201).json({ // Return success response
+                message: 'Post created successfully!',
+                post: result, // Return the created post
+            });
+        })
+        .catch(err => {
+            res.status(500).json({ message: 'Creating a post failed!' }); // Return error response
+        });
 }
