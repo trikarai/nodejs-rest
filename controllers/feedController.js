@@ -34,6 +34,15 @@ exports.createPost = (req, res) => {
         error.data = errors.array(); // Attach validation errors to the error object
         throw  error // Throw the error to be handled by the error handling middleware
     }
+
+    if (!req.file) { // Check if a file was uploaded
+        const error = new Error('No image provided.'); // Create a new error
+        error.statusCode = 422; // Set status code to 422 (Unprocessable Entity)
+        throw error; // Throw the error to be handled by the error handling middleware
+    }
+
+    const imageUrl = req.file.path.replace("\\", "/"); // Get the file path and replace backslashes with forward slashes
+
     // Extract data from request body 
     const title = req.body.title; // Extract title from request body
     const content = req.body.content; // Extract content from request body

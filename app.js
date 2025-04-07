@@ -4,14 +4,42 @@ const path = require("path");
 
 const express = require("express");
 const mongoose = require("mongoose"); // Import mongoose for MongoDB connection
+const multer = require("multer"); // Import multer for file uploads
+const { v4: uuidv4 } = require("uuid"); // Import uuid for generating unique IDs
+
 const app = express();
+
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images"); // Set the destination folder for uploaded files
+  },
+  filename: (req, file, cb) => {
+    cb(null, uuidv4() + "-" + file.originalname); // Set the filename for uploaded files
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true); // Accept the file if it is a PNG, JPG, or JPEG image
+  } else {
+    cb(null, false); // Reject the file if it is not an accepted type
+  }
+};
+
+const fileUpload = multer({ storage: fileStorage, fileFilter: fileFilter }); // Initialize multer with the storage configuration
 
 // Import the routes
 const feedRoutes = require("./routes/feed");
 
 app.use(express.json()); // Middleware to parse JSON bodies
 // app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded bodies
-app.use("/images", express.static(path.join(__dirname, "images"))); // Serve static files from the images directory
+app.use(fileUpload.single("file")); // Middleware to handle single file uploads with the field name 'file'
+app.use("/images", express.static(path.join(__dirname, "images"))); // Serve static files from the 'images' directory
+app.use("/feed", feedRoutes); // Use the feed routes for any requests to /feed
 
 app.use("/feed", feedRoutes); // Use the feed routes for any requests to /feed
 
@@ -28,19 +56,6 @@ app.use((error, req, res, next) => {
   const data = error.data; // Get any additional data from the error
   res.status(status).json({ message: message, data: data }); // Send the error response as JSON
 });
-
-mongoose
-  .connect(process.env.MONGODB_URI, {
-    // Replace with your MongoDB connection string
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("Connected to MongoDB!");
-  })
-  .catch((err) => {
-    console.error("MongoDB connection error:", err);
-  });
 
 const server = http.createServer(app);
 
