@@ -3,12 +3,13 @@ const { body } = require('express-validator'); // Import express-validator for v
 const router = express.Router();
 
 const feedController = require('../controllers/feedController.js'); // Adjust the path as necessary
+const isAuth = require('../middleware/is-auth.js');
 
 router.get('/', (req, res) => {
     feedController.getPosts(req, res);
 });
 
-router.get('/post', (req, res) => {
+router.get('/post', isAuth, (req, res) => {
     feedController.getPosts(req, res);
 });
 
