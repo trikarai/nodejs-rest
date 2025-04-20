@@ -17,6 +17,7 @@ exports.getPosts = (req, res, next) => {
         .then(count => {
             totalItems = count; // Set the total items count
             return Post.find() // Find all posts again
+                .populate('creator') // Populate the creator field with user data
                 .skip((currentPage - 1) * limit) // Skip posts for previous pages
                 .limit(limit); // Limit the number of posts to the specified limit
         })
