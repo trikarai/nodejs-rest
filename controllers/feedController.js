@@ -152,6 +152,13 @@ exports.getUpdatePost = (req, res, next) => {
                 error.statusCode = 404; // Set status code to 404 (Not Found)
                 throw error; // Throw the error to be handled by the error handling middleware
             }
+
+            if (post.creator.toString() !== req.userId.toString()) { // Check if the authenticated user is the creator of the post
+                const error = new Error('Not authorized!'); // Create a new error
+                error.statusCode = 403; // Set status code to 403 (Forbidden)
+                throw error; // Throw the error to be handled by the error handling middleware
+            }
+
             if(imageUrl !== post.imageUrl) { // Check if the image URL has changed
                 clearImage(post.imageUrl); // Clear the old image from the server
             }
@@ -184,6 +191,13 @@ exports.deletePost = (req, res, next) => {
                 error.statusCode = 404; // Set status code to 404 (Not Found)
                 throw error; // Throw the error to be handled by the error handling middleware
             }
+            if (post.creator.toString() !== req.userId.toString()) {
+                // Check if the authenticated user is the creator of the post
+                const error = new Error("Not authorized!"); // Create a new error
+                error.statusCode = 403; // Set status code to 403 (Forbidden)
+                throw error; // Throw the error to be handled by the error handling middleware
+            }
+
             clearImage(post.imageUrl); // Clear the image from the server
             return Post.findByIdAndDelete(postId); // Remove the post from the database
         })
