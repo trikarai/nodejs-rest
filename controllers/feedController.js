@@ -3,6 +3,8 @@ const { validationResult } = require('express-validator');
 const Post = require('../models/post'); // Import the Post model
 const User = require('../models/user'); // Import the User model
 
+const { clearImage } = require('../utils/image');
+
 exports.getPosts = (req, res, next) => {
     res.status(200).json({
       posts: [
@@ -74,15 +76,69 @@ exports.createPost = (req, res) => {
 exports.getPostSingle = (req, res) => {
     const postId = req.params.postId; // Get the post ID from the request parameters
     Post.findById(postId) // Find the post by ID in the database
+    .then(post => {
+        if (!post) { // Check if post exists
+            const error = new Error('Could not find post.'); // Create a new error
+            error.statusCode = 404; // Set status code to 404 (Not Found)
+            throw error; // Throw the error to be handled by the error handling middleware
+        }
+        res.status(200).json({ // Return success response
+            message: 'Post fetched.',
+            post: post, // Return the found post
+        });
+    })
+    .catch(err => {
+        if (!err.statusCode) { // Check if error has a status code
+            err.statusCode = 500; // Set default status code to 500
+        }
+        next(err); // Pass the error to the next middleware
+    });
+}
+
+exports.getUpdatePost = (req, res, next) => {
+    const postId = req.params.postId; // Get the post ID from the request parameters
+    let errors = validationResult(req); // Validate the request body
+    if (!errors.isEmpty()) {
+        const error = new Error('Validation failed, entered data is incorrect.'); // Create a new error
+        error.statusCode = 422; // Set status code to 422 (Unprocessable Entity)
+        error.data = errors.array(); // Attach validation errors to the error object
+        throw  error // Throw the error to be handled by the error handling middleware
+    }
+
+    const title = req.body.title; // Extract title from request body
+    const content = req.body.content; // Extract content from request body
+    let imageUrl = req.body.imageUrl; // Extract image URL from request body
+
+    if (req.file) { // Check if a file was uploaded
+        imageUrl = req.file.path.replace("\\", "/"); // Get the file path and replace backslashes with forward slashes
+    }
+
+    if (!imageUrl) { // Check if a file was uploaded
+        const error = new Error('No image provided.'); // Create a new error
+        error.statusCode = 422; // Set status code to 422 (Unprocessable Entity)
+        throw error; // Throw the error to be handled by the error handling middleware
+    }
+
+    Post.findById(postId) // Find the post by ID in the database
         .then(post => {
             if (!post) { // Check if post exists
                 const error = new Error('Could not find post.'); // Create a new error
                 error.statusCode = 404; // Set status code to 404 (Not Found)
                 throw error; // Throw the error to be handled by the error handling middleware
             }
+            if(imageUrl !== post.imageUrl) { // Check if the image URL has changed
+                clearImage(post.imageUrl); // Clear the old image from the server
+            }
+            post.title = title; // Update post title
+            post.content = content; // Update post content
+            post.imageUrl = imageUrl; // Update post image URL
+
+            return post.save(); // Save the updated post to the database
+        })
+        .then(result => {
             res.status(200).json({ // Return success response
-                message: 'Post fetched.',
-                post: post, // Return the found post
+                message: 'Post updated!',
+                post: result, // Return the updated post
             });
         })
         .catch(err => {

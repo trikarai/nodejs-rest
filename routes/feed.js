@@ -18,6 +18,15 @@ router.post("/post",
     ]
     , feedController.createPost);
  
-router.get('/post/:postId', feedController.getPostSingle); // Route to get all posts
+router.get('/post/:postId', feedController.getPostSingle); // Route to get single post
+
+router.put(
+  "/post/:postId",
+  [
+    body("title").trim().isLength({ min: 5 }), // Validate title length
+    body("content").trim().isLength({ min: 7 }), // Validate content length
+  ],
+  feedController.getUpdatePost
+);
 
 module.exports = router;
