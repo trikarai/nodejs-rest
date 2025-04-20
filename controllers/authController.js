@@ -1,7 +1,8 @@
+require("dotenv").config();
 const User = require('../models/user'); // Import the User model
 const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs'); // Import bcrypt for password hashing
-
+const jwt = require('jsonwebtoken'); // Import jsonwebtoken for token generation
  
 exports.login = async (req, res, next) => {
     const errors = validationResult(req); // Validate the request body
@@ -32,9 +33,19 @@ exports.login = async (req, res, next) => {
                 error.statusCode = 401; // Set status code to 401 (Unauthorized)
                 throw error; // Throw the error to be handled by the error handling middleware
             }
+            const token = jwt.sign(
+              // Generate a JWT token
+              {
+                email: loadedUser.email, // Include email in token payload
+                userId: loadedUser._id.toString(), // Include user ID in token payload
+              },
+              process.env.JWT_SECRET_KEY, // Secret key for signing the token
+              { expiresIn: process.env.JWT_EXPIRATION_TIME } // Set token expiration time to 1 hour
+            );
             res.status(200).json({ // Return success response
                 message: 'Logged in successfully!',
                 userId: loadedUser._id.toString(), // Return the user ID as a string
+                token: token, // Return the generated token
             });
         })
         .catch(err => { // Catch any errors
