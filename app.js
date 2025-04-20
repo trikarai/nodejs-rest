@@ -40,9 +40,9 @@ app.use(express.json()); // Middleware to parse JSON bodies
 // app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded bodies
 app.use(fileUpload.single("file")); // Middleware to handle single file uploads with the field name 'file'
 app.use("/images", express.static(path.join(__dirname, "images"))); // Serve static files from the 'images' directory
-app.use("/feed", feedRoutes); // Use the feed routes for any requests to /feed
 
 app.use("/feed", feedRoutes); // Use the feed routes for any requests to /feed
+app.use("/auth", authRoutes); // Use the feed routes for any requests to /feed
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*"); // Allow requests from any origin
