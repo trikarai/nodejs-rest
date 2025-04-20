@@ -6,11 +6,29 @@ const User = require('../models/user'); // Import the User model
 const { clearImage } = require('../utils/image');
 
 exports.getPosts = (req, res, next) => {
-   Post.find() // Find all posts in the database
+
+    const currentPage = req.query.page || 1; // Get the current page from query parameters, default to 1
+    const limit = req.query.limit; // Number of posts per page  
+
+    let totalItems = 0; // Initialize total items count
+    
+    Post.find() // Find all posts in the database
+        .countDocuments() // Count the total number of posts
+        .then(count => {
+            totalItems = count; // Set the total items count
+            return Post.find() // Find all posts again
+                .skip((currentPage - 1) * limit) // Skip posts for previous pages
+                .limit(limit); // Limit the number of posts to the specified limit
+        })
         .then(posts => {
             res.status(200).json({ // Return success response
                 message: 'Fetched posts successfully.',
-                posts: posts, // Return the found posts
+                posts: posts, // Return the found posts,
+                meta: {
+                    totalItems: totalItems, // Return the total number of posts
+                    page: currentPage, // Return the current page
+                    limit: limit, // Return the limit of posts per page
+                }
             });
         })
         .catch(err => {
