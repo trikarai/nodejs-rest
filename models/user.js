@@ -18,6 +18,16 @@ const userSchema = new Schema({
         required: true,
         minlength: 6,
     },
+    status: {
+        type: String,
+        required: true,
+    },
+    posts: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Post',
+        },
+    ],
     createdAt: {
         type: Date,
         default: Date.now,
