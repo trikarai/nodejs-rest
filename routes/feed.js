@@ -16,6 +16,7 @@ router.get('/post', isAuth, (req, res) => {
 // Route to get posts
 // This will handle GET requests to /feed/posts
 router.post("/post",
+    isAuth,
     [
         body('title').trim().isLength({ min: 5 }), // Validate title length
         body('content').trim().isLength({ min: 7 }), // Validate content length
@@ -23,10 +24,11 @@ router.post("/post",
     ]
     , feedController.createPost);
  
-router.get('/post/:postId', feedController.getPostSingle); // Route to get single post
+router.get('/post/:postId', isAuth, feedController.getPostSingle); // Route to get single post
 
 router.put(
-  "/post/:postId",
+  "/post/:postId", 
+  isAuth,
   [
     body("title").trim().isLength({ min: 5 }), // Validate title length
     body("content").trim().isLength({ min: 7 }), // Validate content length
@@ -34,6 +36,6 @@ router.put(
   feedController.getUpdatePost
 );
 
-router.delete("/post/:postId", feedController.deletePost); // Route to delete post
+router.delete("/post/:postId", isAuth, feedController.deletePost); // Route to delete post
 
 module.exports = router;
