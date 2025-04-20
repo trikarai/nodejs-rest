@@ -3,7 +3,47 @@ const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs'); // Import bcrypt for password hashing
 
  
-exports.login = async (req, res) => {}
+exports.login = async (req, res, next) => {
+    const errors = validationResult(req); // Validate the request body
+    if (!errors.isEmpty()) { // Check if there are validation errors
+        const error = new Error('Validation failed, entered data is incorrect.'); // Create a new error
+        error.statusCode = 422; // Set status code to 422 (Unprocessable Entity)
+        error.data = errors.array(); // Attach validation errors to the error object
+        throw error; // Throw the error to be handled by the error handling middleware
+    }
+    
+    const { email, password } = req.body; // Destructure email and password from request body
+    
+    let loadedUser; // Initialize variable to hold loaded user
+
+    User.findOne({ email: email }) // Find user by email in the database
+        .then(user => {
+            if (!user) { // If user not found
+                const error = new Error('A user with this email could not be found.'); // Create a new error
+                error.statusCode = 401; // Set status code to 401 (Unauthorized)
+                throw error; // Throw the error to be handled by the error handling middleware
+            }
+            loadedUser = user; // Assign found user to loadedUser variable
+            return bcrypt.compare(password, user.password); // Compare provided password with hashed password in database
+        })
+        .then(isEqual => {
+            if (!isEqual) { // If passwords do not match
+                const error = new Error('Wrong password!'); // Create a new error
+                error.statusCode = 401; // Set status code to 401 (Unauthorized)
+                throw error; // Throw the error to be handled by the error handling middleware
+            }
+            res.status(200).json({ // Return success response
+                message: 'Logged in successfully!',
+                userId: loadedUser._id.toString(), // Return the user ID as a string
+            });
+        })
+        .catch(err => { // Catch any errors
+            if (!err.statusCode) { // Check if error has a status code
+                err.statusCode = 500; // Set default status code to 500
+            }
+            next(err); // Pass the error to the next middleware
+        });
+}
 
 exports.signup = async (req, res) => {
     const errors = validationResult(req); // Validate the request body

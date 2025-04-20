@@ -28,5 +28,16 @@ router.put(
   authController.signup
 ); // Handle signup request
 
+router.post(
+  "/login",
+  [
+    body("email")
+      .isEmail() // Validate email field
+      .withMessage("Please enter a valid email address.")
+      .normalizeEmail(),
+    body("password").trim().isLength({ min: 6 }), // Validate password field
+  ],
+  authController.login
+); // Handle login request
 
 module.exports = router; // Export the router instance
