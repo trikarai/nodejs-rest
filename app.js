@@ -34,6 +34,7 @@ const fileUpload = multer({ storage: fileStorage, fileFilter: fileFilter }); // 
 
 // Import the routes
 const feedRoutes = require("./routes/feed");
+const authRoutes = require("./routes/auth");
 
 app.use(express.json()); // Middleware to parse JSON bodies
 // app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded bodies
