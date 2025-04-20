@@ -65,15 +65,30 @@ exports.createPost = (req, res) => {
       title: title,
       content: content,
       imageUrl: "/images/1743836947636-images.png", // Example image URL
-      // creator: req.userId, // Assuming you have user authentication set up
-      creator: "67c2eaf8cb97060c184e0fd0",  
-    });
+      creator: req.userId, // Set the creator to the authenticated user ID 
+      });
+
+    let creator; // Initialize creator variable  
 
     post.save() // Save the post to the database
         .then(result => {
-            res.status(201).json({ // Return success response
-                message: 'Post created successfully!',
-                post: result, // Return the created post
+            return User.findById(req.userId); // Find the user by ID in the database
+        })
+        .then(user => {
+            creator = user; // Set the creator to the found user
+            user.posts.push(post); // Add the post to the user's posts array
+            return user.save(); // Save the updated user to the database
+        })
+        .then(result => {
+            res.status(201).json({
+              // Return success response
+              message: "Post created successfully!",
+              post: post, // Return the created post
+              creator: {
+                // Return the creator's information
+                _id: creator._id,
+                name: creator.name,
+              },
             });
         })
         .catch(err => {
