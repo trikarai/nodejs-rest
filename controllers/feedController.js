@@ -6,26 +6,19 @@ const User = require('../models/user'); // Import the User model
 const { clearImage } = require('../utils/image');
 
 exports.getPosts = (req, res, next) => {
-    res.status(200).json({
-      posts: [
-        {
-          _id: "p1",
-          title: "First Post",
-          content: "This is the first post!",
-          imageUrl: "/images/1743836947636-images.png", // Example image URL
-          creator: { name: "Tri" }, // Example creator object
-          createdAt: new Date(), // Example creation date
-        },
-        {
-          _id: "p2",
-          title: "Second Post",
-          content: "This is the second post!",
-          imageUrl: "/images/1743836947636-images.png",
-          creator: { name: "Tri" }, // Example creator object
-          createdAt: new Date(), // Example creation date
-        },
-      ],
-    });
+   Post.find() // Find all posts in the database
+        .then(posts => {
+            res.status(200).json({ // Return success response
+                message: 'Fetched posts successfully.',
+                posts: posts, // Return the found posts
+            });
+        })
+        .catch(err => {
+            if (!err.statusCode) { // Check if error has a status code
+                err.statusCode = 500; // Set default status code to 500
+            }
+            next(err); // Pass the error to the next middleware
+        });
 }
 
 exports.createPost = (req, res) => {

@@ -8,6 +8,10 @@ router.get('/', (req, res) => {
     feedController.getPosts(req, res);
 });
 
+router.get('/post', (req, res) => {
+    feedController.getPosts(req, res);
+});
+
 // Route to get posts
 // This will handle GET requests to /feed/posts
 router.post("/post",
