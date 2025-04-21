@@ -59,23 +59,23 @@ app.use((error, req, res, next) => {
 });
 
 const server = http.createServer(app);
-const { Server } = require("socket.io");
-const io = new Server(server);
 
 mongoose
     .connect(process.env.MONGODB_URI)
     .then(() => {
-        server.listen(8080, () => {
-          console.log("Server is running on port 8080");
-        });
-        console.log("Connected to MongoDB");
+      server.listen(8080, () => {
+        console.log("Server is running on port 8080");
+      });
+      console.log("Connected to MongoDB");
 
-        io.on("connection", (socket) => {
-          console.log("Client connected:", socket.id); // Log when a client connects
-          socket.on("disconnect", () => {
-            console.log("Client disconnected");
-          });
+      const io = require("./socket").init(server); // Initialize socket.io with the server
+      
+      io.on("connection", (socket) => {
+        console.log("Client connected:", socket.id); // Log when a client connects
+        socket.on("disconnect", () => {
+          console.log("Client disconnected");
         });
+      });
     })
     .catch((err) => console.log(err));
 
