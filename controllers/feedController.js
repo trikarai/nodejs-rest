@@ -1,5 +1,7 @@
 const { validationResult } = require('express-validator');
 
+const io = require('../socket'); // Import socket.io instance
+
 const Post = require('../models/post'); // Import the Post model
 const User = require('../models/user'); // Import the User model
 
@@ -81,6 +83,18 @@ exports.createPost = (req, res) => {
             return user.save(); // Save the updated user to the database
         })
         .then(result => {
+
+            io.getIO().emit('posts', { // Emit a socket event to notify all clients about the new post
+                action: 'create', // Action type
+                post: { // Post data to be sent to clients
+                    ...post._doc, // Spread the post document properties
+                    creator: { // Creator information
+                        _id: creator._id,
+                        name: creator.name,
+                    },
+                },
+            });
+
             res.status(201).json({
               // Return success response
               message: "Post created successfully!",
