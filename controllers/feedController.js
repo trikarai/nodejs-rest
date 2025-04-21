@@ -232,6 +232,12 @@ exports.deletePost = (req, res, next) => {
             return user.save(); // Save the updated user to the database
         })
         .then(result => {
+
+            io.getIO().emit('posts', { // Emit a socket event to notify all clients about the deleted post
+                action: 'delete', // Action type
+                post: postId, // Post ID to be deleted
+            });
+
             res.status(200).json({ // Return success response
                 message: 'Post deleted.',
                 postId: postId, // Return the deleted post ID
