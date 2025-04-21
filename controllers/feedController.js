@@ -161,6 +161,7 @@ exports.getUpdatePost = (req, res, next) => {
     }
 
     Post.findById(postId) // Find the post by ID in the database
+        .populate('creator') // Populate the creator field with user data    
         .then(post => {
             if (!post) { // Check if post exists
                 const error = new Error('Could not find post.'); // Create a new error
@@ -184,6 +185,13 @@ exports.getUpdatePost = (req, res, next) => {
             return post.save(); // Save the updated post to the database
         })
         .then(result => {
+
+            io.getIO().emit("posts", {
+              // Emit a socket event to notify all clients about the new post
+              action: "update", // Action type
+              post: result 
+            });
+
             res.status(200).json({ // Return success response
                 message: 'Post updated!',
                 post: result, // Return the updated post
