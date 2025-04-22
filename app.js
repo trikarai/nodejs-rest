@@ -60,8 +60,7 @@ app.use(
         return { message: message, status: code }; // Return the error response
       }
       return err; // Return the original error if no specific error is found
-    },
-    graphiql: true, // Enable GraphiQL interface for testing queries
+    }
   })(req, res, next) // Use the GraphQL handler for incoming requests
   // Pass the request, response, and next function to the handler 
 );
