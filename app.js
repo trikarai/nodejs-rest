@@ -55,9 +55,10 @@ app.use(
     rootValue: rootValue,
     formatError: (err) => {
       if (err.originalError) {
-        const message = err.originalError.message || "An error occurred."; // Get the error message
+        const data = err.originalError.data; // Get any additional data from the original error
+        const message = err.message || "An error occurred."; // Get the error message
         const code = err.originalError.code || 500; // Get the error code or default to 500
-        return { message: message, status: code }; // Return the error response
+        return { message: message, status: code, data: data }; // Return the error response
       }
       return err; // Return the original error if no specific error is found
     }
