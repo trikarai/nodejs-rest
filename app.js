@@ -45,6 +45,12 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*"); // Allow requests from any origin
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE"); // Allow specific HTTP methods
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization"); // Allow specific headers
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200); // Respond with 200 OK for preflight requests
+  }
+  if (!req.is("application/json")) {
+    return res.status(400).json({ message: "Invalid content type" }); // Respond with 400 Bad Request if the content type is not JSON
+  }
   next(); // Call the next middleware function
 });
 
