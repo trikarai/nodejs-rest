@@ -49,21 +49,23 @@ app.use((req, res, next) => {
 });
 
 app.use(
-  "/graphql", (req, res, next) =>  
-  createHandler({
-    schema: schema,
-    rootValue: rootValue,
-    formatError: (err) => {
-      if (err.originalError) {
-        const data = err.originalError.data; // Get any additional data from the original error
-        const message = err.message || "An error occurred."; // Get the error message
-        const code = err.originalError.code || 500; // Get the error code or default to 500
-        return { message: message, status: code, data: data }; // Return the error response
-      }
-      return err; // Return the original error if no specific error is found
-    }
-  })(req, res, next) // Use the GraphQL handler for incoming requests
-  // Pass the request, response, and next function to the handler 
+  "/graphql",
+  (req, res, next) =>
+    createHandler({
+      schema: schema,
+      rootValue: rootValue,
+      formatError: (err) => {
+        if (err.originalError) {
+          const data = err.originalError.data; // Get any additional data from the original error
+          const message = err.message || "An error occurred."; // Get the error message
+          const code = err.originalError.code || 500; // Get the error code or default to 500
+          return { message: message, status: code, data: data }; // Return the error response
+        }
+        return err; // Return the original error if no specific error is found
+      },
+      context: { req, res }, // Pass the request and response objects to the context
+    })(req, res, next) // Use the GraphQL handler for incoming requests
+  // Pass the request, response, and next function to the handler
 );
 
 app.use((error, req, res, next) => {

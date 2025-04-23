@@ -5,7 +5,7 @@ const User = require('../models/user'); // Import the User model to interact wit
 // This file contains the resolvers for the GraphQL API.
 // It defines the structure of the API and how to resolve queries and mutations.
 const rootValue = {
-  createUser: async (args, req) => {
+  createUser: async (args, { req }) => {
     try {
       // Validate the email and password using validator library
       const errors = []; // Initialize an array to store validation errors
