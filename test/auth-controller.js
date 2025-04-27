@@ -14,10 +14,7 @@ describe("Auth Controller", () => {
     before(function (done) {
       // Hook to run before all tests
       mongoose
-        .connect(process.env.MONGODB_URI, {
-          useNewUrlParser: true,
-          useUnifiedTopology: true,
-        })
+        .connect(process.env.MONGODB_URI)
         .then(() => {
           console.log("Connected to MongoDB");
           const user = new User({
@@ -27,10 +24,14 @@ describe("Auth Controller", () => {
             posts: [],
             _id: userId, // Use the userId from the test
           }); // Create a new user instance
-          return User.save(); // Save the user instance to the database
+          return user.save(); // Save the user instance to the database
         })
         .then(() => {
           done(); // Call done to indicate the setup is complete
+        })
+        .catch(err => {
+          console.error("Error connecting to MongoDB:", err); // Log any connection errors
+          done(err); // Call done with the error to fail the test
         });
     }); 
 
