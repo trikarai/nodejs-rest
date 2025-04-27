@@ -13,6 +13,8 @@ const { createHandler } = require('graphql-http/lib/use/express');
 
 const auth = require("./middleware/is-auth"); // Import authentication middleware
 
+const { clearImage } = require("./utils/image"); // Import utility function for clearing images
+
  
 const app = express();
 
@@ -102,8 +104,3 @@ mongoose
       console.log("Connected to MongoDB");
     })
     .catch((err) => console.log(err));
-
-const clearImage = (filePath) => {
-  filePath = path.join(__dirname, "..", filePath); // Get the absolute path of the file
-  fs.unlink(filePath, (err) => console.log(err)); // Delete the file from the server
-}

@@ -3,6 +3,7 @@ const validator = require("validator"); // Import validator for input validation
 const User = require('../models/user'); // Import the User model to interact with the database
 const Post = require('../models/post'); // Import the Post model to interact with the database
 const jwt = require("jsonwebtoken"); // Import jsonwebtoken for generating JWT tokens
+const { clearImage } = require("../utils/image");
 
 // This file contains the resolvers for the GraphQL API.
 // It defines the structure of the API and how to resolve queries and mutations.
@@ -196,7 +197,31 @@ const rootValue = {
     }
     const updatedPost = await post.save(); // Save the updated post to the database
     return { ...updatedPost._doc, _id: updatedPost._id.toString(), createdAt: updatedPost.createdAt.toISOString(), updatedAt: updatedPost.updatedAt.toISOString() }; // Return the updated post object
-  }
+  },
+  deletePost: async (args, { req }) => {
+    if (!req.isAuth) {
+      const error = new Error("Not authenticated!"); // Create an error if the user is not authenticated
+      error.code = 401; // Set the error code to 401 (Unauthorized)
+      throw error; // Throw the error to be caught by the GraphQL handler
+    }
+    const post = await Post.findById(args.postId).populate("creator"); // Find the post by ID and populate the creator field with user data
+    if (!post) {
+      const error = new Error("Post not found!"); // Create an error if the post is not found
+      error.code = 404; // Set the error code to 404 (Not Found)
+      throw error; // Throw the error to be caught by the GraphQL handler
+    }
+    if (post.creator._id.toString() !== req.userId.toString()) {
+      const error = new Error("Not authorized!"); // Create an error if the user is not authorized to delete the post
+      error.code = 403; // Set the error code to 403 (Forbidden)
+      throw error; // Throw the error to be caught by the GraphQL handler
+    }
+    clearImage(post.imageUrl); // Clear the image from the server
+    await Post.findByIdAndDelete(args.postId); // Remove the post from the database
+    const user = await User.findById(req.userId); // Find the user who created the post
+    user.posts.pull(args.postId); // Remove the post ID from the user's posts array
+    await user.save(); // Save the updated user to the database
+    return true; // Return true to indicate successful deletion
+  },
 };
 
 // The rootValue object contains the resolvers for the GraphQL API

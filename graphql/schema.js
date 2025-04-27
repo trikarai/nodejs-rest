@@ -46,6 +46,7 @@ const schema = buildSchema(`
         createUser(userInput : UserInput): User!
         createPost(postInput: PostInput): Post!
         updatePost(postId: ID!, postInput: PostInput): Post!
+        deletePost(postId: ID!): Boolean!
     }
 
     type RootQuery {
