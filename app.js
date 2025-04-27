@@ -14,8 +14,8 @@ const { createHandler } = require('graphql-http/lib/use/express');
 const auth = require("./middleware/is-auth"); // Import authentication middleware
 
 const { clearImage } = require("./utils/image"); // Import utility function for clearing images
+const { default: helmet } = require("helmet");
 
- 
 const app = express();
 
 const fileStorage = multer.diskStorage({
@@ -87,6 +87,8 @@ app.use(
     })(req, res, next) // Use the GraphQL handler for incoming requests
   // Pass the request, response, and next function to the handler
 );
+
+app.use(helmet()); // Use helmet for security headers
 
 app.use((error, req, res, next) => {
   const status = error.statusCode || 500; // Get the status code from the error or default to 500
