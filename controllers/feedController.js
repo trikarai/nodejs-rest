@@ -42,7 +42,7 @@ exports.getPosts = (req, res, next) => {
         });
 }
 
-exports.createPost = (req, res) => {
+exports.createPost = async (req, res) => {
     const errors = validationResult(req); // Validate the request body
     if (!errors.isEmpty()) {
         const error = new Error('Validation failed, entered data is incorrect.'); // Create a new error
@@ -69,49 +69,29 @@ exports.createPost = (req, res) => {
       content: content,
       imageUrl: "/images/1743836947636-images.png", // Example image URL
       creator: req.userId, // Set the creator to the authenticated user ID 
-      });
+    });
 
-    let creator; // Initialize creator variable  
-
-    post.save() // Save the post to the database
-        .then(result => {
-            return User.findById(req.userId); // Find the user by ID in the database
-        })
-        .then(user => {
-            creator = user; // Set the creator to the found user
-            user.posts.push(post); // Add the post to the user's posts array
-            return user.save(); // Save the updated user to the database
-        })
-        .then(result => {
-
-            io.getIO().emit('posts', { // Emit a socket event to notify all clients about the new post
-                action: 'create', // Action type
-                post: { // Post data to be sent to clients
-                    ...post._doc, // Spread the post document properties
-                    creator: { // Creator information
-                        _id: creator._id,
-                        name: creator.name,
-                    },
-                },
-            });
-
-            res.status(201).json({
-              // Return success response
-              message: "Post created successfully!",
-              post: post, // Return the created post
-              creator: {
-                // Return the creator's information
-                _id: creator._id,
-                name: creator.name,
-              },
-            });
-        })
-        .catch(err => {
-            if (!err.statusCode) { // Check if error has a status code
-                err.statusCode = 500; // Set default status code to 500
-            }
-            next(err); // Pass the error to the next middleware
+    try {
+        await post.save(); // Save the post to the database
+        const user = await User.findById(req.userId); // Find the user by ID in the database
+        user.posts.push(post); // Add the post to the user's posts array
+        const saveduser = await user.save(); // Save the updated user to the database
+        res.status(201).json({ // Return success response
+            message: "Post created successfully!",
+            post: post, // Return the created post
+            creator: {
+                _id: user._id,
+                name: user.name,
+            },
         });
+        return saveduser; // Return the saved user
+    } catch (err) {
+        if (!err.statusCode) { // Check if error has a status code
+            err.statusCode = 500; // Set default status code to 500
+        }
+        next(err); // Pass the error to the next middleware
+        return err; // Return the error to prevent further execution
+    }
 }
 
 exports.getPostSingle = (req, res) => {
