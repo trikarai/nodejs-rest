@@ -114,6 +114,16 @@ const rootValue = {
     await user.save(); // Save the updated user to the database
     return { ...createdPost._doc, _id: createdPost._id.toString(), createdAt: createdPost.updatedAt.toISOString() }; // Return the created post object
   },
+  posts: async (args, { req }) => {
+    if (!req.isAuth) {
+      const error = new Error("Not authenticated!"); // Create an error if the user is not authenticated
+      error.code = 401; // Set the error code to 401 (Unauthorized)
+      throw error; // Throw the error to be caught by the GraphQL handler
+    }
+    const totalPosts = await Post.find().countDocuments(); // Get the total number of posts in the database
+    const posts = await Post.find().populate("creator"); // Find all posts and populate the creator field with user data
+    return { posts: posts.map((post) => ({ ...post._doc, _id: post._id.toString(), createdAt: post.createdAt.toISOString(), updatedAt: post.updatedAt.toISOString() })), totalPosts: totalPosts }; // Return the posts and total number of posts
+  },
 };
 
 // The rootValue object contains the resolvers for the GraphQL API

@@ -31,6 +31,11 @@ const schema = buildSchema(`
         content: String!
         imageUrl: String!
     }
+    
+    type PostData {
+        posts: [Post!]!
+        totalPosts: Int!
+    }
 
     type AuthData {
         userId: ID!
@@ -44,6 +49,7 @@ const schema = buildSchema(`
 
     type RootQuery {
         login(email: String!, password: String!): AuthData!
+        posts: PostData!
     }
 
     schema {
