@@ -3,6 +3,7 @@ const validator = require("validator"); // Import validator for input validation
 const User = require('../models/user'); // Import the User model to interact with the database
 const Post = require('../models/post'); // Import the Post model to interact with the database
 const jwt = require("jsonwebtoken"); // Import jsonwebtoken for generating JWT tokens
+const post = require("../models/post");
 
 // This file contains the resolvers for the GraphQL API.
 // It defines the structure of the API and how to resolve queries and mutations.
@@ -140,9 +141,23 @@ const rootValue = {
           updatedAt: post.updatedAt.toISOString() })), 
           totalPosts: totalPosts,
           page: page,
-          
+
   
     }; // Return the posts and total number of posts
+  },
+  post: async (args, { req }) => {
+    if (!req.isAuth) {
+      const error = new Error("Not authenticated!"); // Create an error if the user is not authenticated
+      error.code = 401; // Set the error code to 401 (Unauthorized)
+      throw error; // Throw the error to be caught by the GraphQL handler
+    }
+    const post = await Post.findById(args.postId).populate("creator"); // Find the post by ID and populate the creator field with user data
+    if (!post) {
+      const error = new Error("Post not found!"); // Create an error if the post is not found
+      error.code = 404; // Set the error code to 404 (Not Found)
+      throw error; // Throw the error to be caught by the GraphQL handler
+    }
+    return { ...post._doc, _id: post._id.toString(), createdAt: post.createdAt.toISOString(), updatedAt: post.updatedAt.toISOString() }; // Return the post object
   },
 };
 
