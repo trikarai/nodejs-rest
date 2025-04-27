@@ -1,5 +1,6 @@
 require("dotenv").config();
 const path = require("path");
+const fs = require("fs"); // Import file system module for file operations
 
 const express = require("express");
 const mongoose = require("mongoose"); // Import mongoose for MongoDB connection
@@ -50,10 +51,17 @@ app.use((req, res, next) => {
   if (req.method === "OPTIONS") {
     return res.sendStatus(200); // Respond with 200 OK for preflight requests
   }
-  if (!req.is("application/json")) {
-    return res.status(400).json({ message: "Invalid content type" }); // Respond with 400 Bad Request if the content type is not JSON
-  }
   next(); // Call the next middleware function
+});
+
+app.put("/post-image", (req, res, next) => {
+  if (!req.file) {
+    return res.status(200).json({ message: "No file provided!" }); // Respond with 200 OK if no file is provided
+  }
+  if (req.body.oldPath) {
+    clearImage(req.body.oldPath); // Clear the old image if a new one is provided
+  }
+  return res.status(201).json({ message: "File stored.", fileUrl: req.file.path.replace("\\", "/") }); // Respond with 201 Created and the file URL
 });
 
 app.use(auth); // Use the authentication middleware
@@ -94,3 +102,8 @@ mongoose
       console.log("Connected to MongoDB");
     })
     .catch((err) => console.log(err));
+
+const clearImage = (filePath) => {
+  filePath = path.join(__dirname, "..", filePath); // Get the absolute path of the file
+  fs.unlink(filePath, (err) => console.log(err)); // Delete the file from the server
+}
