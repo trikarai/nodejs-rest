@@ -16,6 +16,7 @@ const auth = require("./middleware/is-auth"); // Import authentication middlewar
 const { clearImage } = require("./utils/image"); // Import utility function for clearing images
 const { default: helmet } = require("helmet");
 const compression = require("compression");
+const morgan = require("morgan");
 
 const app = express();
 
@@ -89,8 +90,11 @@ app.use(
   // Pass the request, response, and next function to the handler
 );
 
+const accessLogStream = fs.createWriteStream(path.join(__dirname, "access.log"), { flags: "a" }); // Create a write stream for logging
+
 app.use(helmet()); // Use helmet for security headers
 app.use(compression()); // Use compression for response compression
+app.use(morgan("combined", { stream: accessLogStream })); // Use morgan to log HTTP requests to the access.log file
 
 app.use((error, req, res, next) => {
   const status = error.statusCode || 500; // Get the status code from the error or default to 500
