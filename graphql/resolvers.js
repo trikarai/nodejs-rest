@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs"); // Import bcrypt for password hashing
 const validator = require("validator"); // Import validator for input validation
 const User = require('../models/user'); // Import the User model to interact with the database
-
+const jwt = require("jsonwebtoken"); // Import jsonwebtoken for generating JWT tokens
 // This file contains the resolvers for the GraphQL API.
 // It defines the structure of the API and how to resolve queries and mutations.
 const rootValue = {
@@ -53,6 +53,26 @@ const rootValue = {
       throw err; // Throw the error to be caught by the GraphQL handler
     }
   },
+  login : async function({email, password }) {
+    const user = await User.findOne({ email: email }) // Find the user by email
+    if(!user) {
+      const error = new Error("User not found!"); // Create an error if the user is not found
+      error.code = 401; // Set the error code to 401 (Unauthorized)
+      throw error; // Throw the error to be caught by the GraphQL handler
+    }
+    const isEqual = await bcrypt.compare(password, user.password); // Compare the provided password with the hashed password
+    if(!isEqual) {
+      const error = new Error("Password is incorrect!"); // Create an error if the password is incorrect
+      error.code = 401; // Set the error code to 401 (Unauthorized)
+      throw error; // Throw the error to be caught by the GraphQL handler
+    }
+    const token = jwt.sign(
+      { userId: user._id.toString(), email: user.email }, // Create a JWT token with the user ID and email
+      process.env.JWT_SECRET_KEY, // Use the secret key from environment variables
+      { expiresIn: "1h" } // Set the token expiration time to 1 hour
+    );
+    return { userId: user._id.toString(), token: token }; // Return the user ID, token, and token expiration time
+  }
 };
 
 // The rootValue object contains the resolvers for the GraphQL API
