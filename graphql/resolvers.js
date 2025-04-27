@@ -120,9 +120,29 @@ const rootValue = {
       error.code = 401; // Set the error code to 401 (Unauthorized)
       throw error; // Throw the error to be caught by the GraphQL handler
     }
+
+    const page = +args.page || 1; // Get the page number from the arguments or default to 1
+    const perPage = 2; // Number of posts per page
+
     const totalPosts = await Post.find().countDocuments(); // Get the total number of posts in the database
-    const posts = await Post.find().populate("creator"); // Find all posts and populate the creator field with user data
-    return { posts: posts.map((post) => ({ ...post._doc, _id: post._id.toString(), createdAt: post.createdAt.toISOString(), updatedAt: post.updatedAt.toISOString() })), totalPosts: totalPosts }; // Return the posts and total number of posts
+    const posts = await Post.find()
+    .sort({ createdAt: -1 }) // Sort the posts by creation date in descending order
+    .skip((page - 1) * perPage) // Skip the posts for the previous pages
+    .limit(perPage) // Limit the number of posts to the perPage value
+    .populate("creator"); // Find all posts and populate the creator field with user data
+
+    return { 
+      posts: posts.map((post) => (
+        { 
+          ...post._doc, 
+          _id: post._id.toString(), 
+          createdAt: post.createdAt.toISOString(), 
+          updatedAt: post.updatedAt.toISOString() })), 
+          totalPosts: totalPosts,
+          page: page,
+          
+  
+    }; // Return the posts and total number of posts
   },
 };
 
