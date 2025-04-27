@@ -1,7 +1,9 @@
 const bcrypt = require("bcryptjs"); // Import bcrypt for password hashing
 const validator = require("validator"); // Import validator for input validation
 const User = require('../models/user'); // Import the User model to interact with the database
+const Post = require('../models/post'); // Import the Post model to interact with the database
 const jwt = require("jsonwebtoken"); // Import jsonwebtoken for generating JWT tokens
+
 // This file contains the resolvers for the GraphQL API.
 // It defines the structure of the API and how to resolve queries and mutations.
 const rootValue = {
@@ -72,7 +74,46 @@ const rootValue = {
       { expiresIn: "1h" } // Set the token expiration time to 1 hour
     );
     return { userId: user._id.toString(), token: token }; // Return the user ID, token, and token expiration time
-  }
+  },
+  createPost: async (args, { req }) => {
+    const errors = []; // Initialize an array to store validation errors
+    if(validator.isEmpty(args.postInput.title) || !validator.isLength(args.postInput.title, { min: 5 })) {
+      errors.push({ message: "Title is invalid!" }); // Add an error if the title is invalid // Add an error if the title is invalid
+    }    
+    if(validator.isEmpty(args.postInput.content) || !validator.isLength(args.postInput.content, { min: 5 })) {
+      errors.push({ message: "Content is invalid!" }); // Add an error if the content is invalid // Add an error if the content is invalid
+    }
+    if(errors.length > 0) { // Create an error if there are validation errors
+      const error = new Error("Invalid input!"); // Create an error if there are validation errors // Attach the validation errors to the error object
+      error.data = errors; // Attach the validation errors to the error object // Set the error code to 422 (Unprocessable Entity)
+      error.code = 422; // Set the error code to 422 (Unprocessable Entity) // Throw the error to be caught by the GraphQL handler
+      throw error; // Throw the error to be caught by the GraphQL handler
+    }
+    if (!req.isAuth) {
+      const error = new Error("Not authenticated!"); // Create an error if the user is not authenticated
+      error.code = 401; // Set the error code to 401 (Unauthorized)
+      throw error; // Throw the error to be caught by the GraphQL handler
+    }
+
+    const user = await User.findById(req.userId); // Find the user who created the post
+    if (!user) {
+      const error = new Error("User not found!"); // Create an error if the user is not found
+      error.code = 404; // Set the error code to 404 (Not Found)
+      throw error; // Throw the error to be caught by the GraphQL handler
+    }
+
+    const post = new Post({
+      title: args.postInput.title,
+      content: args.postInput.content,
+      imageUrl: args.postInput.imageUrl,
+      creator: req.userId, // Set the creator to the authenticated user's ID
+    });
+    const createdPost = await post.save(); // Save the post to the database
+    
+    user.posts.push(createdPost); // Add the created post to the user's posts array
+    await user.save(); // Save the updated user to the database
+    return { ...createdPost._doc, _id: createdPost._id.toString(), createdAt: createdPost.updatedAt.toISOString() }; // Return the created post object
+  },
 };
 
 // The rootValue object contains the resolvers for the GraphQL API

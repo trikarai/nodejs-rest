@@ -10,6 +10,8 @@ const { schema } = require("./graphql/schema"); // Import GraphQL schema
 const { rootValue } = require("./graphql/resolvers"); // Import GraphQL resolvers
 const { createHandler } = require('graphql-http/lib/use/express');
 
+const auth = require("./middleware/is-auth"); // Import authentication middleware
+
  
 const app = express();
 
@@ -53,6 +55,8 @@ app.use((req, res, next) => {
   }
   next(); // Call the next middleware function
 });
+
+app.use(auth); // Use the authentication middleware
 
 app.use(
   "/graphql",
