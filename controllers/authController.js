@@ -47,12 +47,14 @@ exports.login = async (req, res, next) => {
                 userId: loadedUser._id.toString(), // Return the user ID as a string
                 token: token, // Return the generated token
             });
+            return; // Return to prevent further execution
         })
         .catch(err => { // Catch any errors
             if (!err.statusCode) { // Check if error has a status code
                 err.statusCode = 500; // Set default status code to 500
             }
             next(err); // Pass the error to the next middleware
+            return err; // Return the error to prevent further execution
         });
 }
 
